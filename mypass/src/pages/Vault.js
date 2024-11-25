@@ -7,9 +7,12 @@ const Vault = () => {
     const [formData, setFormData] = useState({ type: "Login", data: {} });
     const [isEditing, setIsEditing] = useState(false);
     const [editId, setEditId] = useState(null);
-    const [unmaskedFields, setUnmaskedFields] = useState({}); // Tracks unmasked fields by item ID
+    const [unmaskedFields, setUnmaskedFields] = useState({});
     const navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem("user"));
+
+    const AUTO_LOCK_TIME =  30 * 1000; // 5 minutes in milliseconds
+    let activityTimeout;
 
     if (!user) {
         navigate("/login");
@@ -24,18 +27,38 @@ const Vault = () => {
 
     useEffect(() => {
         fetchItems();
+        startInactivityTimer();
+
+        // Listen for user activity
+        document.addEventListener("mousemove", resetInactivityTimer);
+        document.addEventListener("keypress", resetInactivityTimer);
+        document.addEventListener("click", resetInactivityTimer);
+
+        return () => {
+            // Cleanup event listeners and timer
+            clearTimeout(activityTimeout);
+            document.removeEventListener("mousemove", resetInactivityTimer);
+            document.removeEventListener("keypress", resetInactivityTimer);
+            document.removeEventListener("click", resetInactivityTimer);
+        };
     }, []);
 
-    useEffect(() => {
-        const newData = {};
-        typeFields[formData.type].forEach((field) => {
-            newData[field] = "";
-        });
-        setFormData((prev) => ({
-            ...prev,
-            data: newData,
-        }));
-    }, [formData.type]);
+    const startInactivityTimer = () => {
+        activityTimeout = setTimeout(() => {
+            handleAutoLock();
+        }, AUTO_LOCK_TIME);
+    };
+
+    const resetInactivityTimer = () => {
+        clearTimeout(activityTimeout);
+        startInactivityTimer();
+    };
+
+    const handleAutoLock = () => {
+        alert("You have been logged out due to inactivity.");
+        localStorage.removeItem("user"); // Clear user session
+        navigate("/login"); // Redirect to login page
+    };
 
     const fetchItems = async () => {
         try {
