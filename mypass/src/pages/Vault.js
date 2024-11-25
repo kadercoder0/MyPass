@@ -7,6 +7,7 @@ const Vault = () => {
     const [formData, setFormData] = useState({ type: "Login", data: {} });
     const [isEditing, setIsEditing] = useState(false);
     const [editId, setEditId] = useState(null);
+    const [unmaskedFields, setUnmaskedFields] = useState({}); // Tracks unmasked fields by item ID
     const navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem("user"));
 
@@ -113,6 +114,18 @@ const Vault = () => {
             });
     };
 
+    const toggleMask = (itemId, field) => {
+        setUnmaskedFields((prev) => ({
+            ...prev,
+            [itemId]: {
+                ...prev[itemId],
+                [field]: !prev[itemId]?.[field],
+            },
+        }));
+    };
+
+    const isUnmasked = (itemId, field) => unmaskedFields[itemId]?.[field];
+
     return (
         <div>
             <h2>Vault</h2>
@@ -165,8 +178,20 @@ const Vault = () => {
                             {Object.entries(itemData).map(([key, value]) => (
                                 <div key={key} style={{ display: "flex", alignItems: "center", marginTop: "5px" }}>
                                     <span style={{ marginRight: "10px" }}>
-                                        {key}: {value}
+                                        {key}:{" "}
+                                        {isUnmasked(item.id, key) ? (
+                                            value
+                                        ) : (
+                                            "****"
+                                        )}
                                     </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleMask(item.id, key)}
+                                        style={{ marginLeft: "10px" }}
+                                    >
+                                        {isUnmasked(item.id, key) ? "Mask" : "Unmask"}
+                                    </button>
                                     <button
                                         type="button"
                                         onClick={() => handleCopy(value)}
