@@ -1,22 +1,22 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 
 const ForgotPassword = () => {
-    const [step, setStep] = useState(1);
+    const [step, setStep] = useState(1); // 1: Enter Email, 2: Answer Questions, 3: Reset Password
     const [email, setEmail] = useState("");
     const [questions, setQuestions] = useState([]);
     const [answers, setAnswers] = useState(["", "", ""]);
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [message, setMessage] = useState("");
-    const navigate = useNavigate();
 
-    // Handle email submission (Step 1)
     const handleEmailSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post("http://localhost/mypass/validate_email.php", { email });
+            const response = await axios.post("http://localhost/mypass/forgot_password.php", {
+                action: "validate_email",
+                email,
+            });
             if (response.data.success) {
                 setQuestions(response.data.questions);
                 setStep(2); // Move to Step 2
@@ -24,73 +24,69 @@ const ForgotPassword = () => {
                 setMessage(response.data.message);
             }
         } catch (error) {
+            console.error("Error validating email:", error);
             setMessage("An error occurred. Please try again.");
-            console.error(error);
         }
     };
-
-    // Handle answers submission (Step 2)
+    
     const handleAnswersSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post(
-                "http://localhost/mypass/validate_answers.php",
-                { email, answers },
-                {
-                    headers: { "Content-Type": "application/json" },
-                }
-            );
+            // Trim the answers before sending
+            const trimmedAnswers = answers.map((answer) => answer.trim());
+    
+            const response = await axios.post("http://localhost/mypass/forgot_password.php", {
+                action: "validate_answers",
+                email: email.trim(),
+                answers: trimmedAnswers,
+            });
             if (response.data.success) {
                 setStep(3); // Move to Step 3
             } else {
                 setMessage(response.data.message);
             }
         } catch (error) {
+            console.error("Error validating answers:", error);
             setMessage("An error occurred. Please try again.");
-            console.error(error);
         }
     };
+    
+    
 
-    // Handle password reset (Step 3)
-    const handlePasswordReset = async (e) => {
+    const handlePasswordSubmit = async (e) => {
         e.preventDefault();
         if (newPassword !== confirmPassword) {
             setMessage("Passwords do not match.");
             return;
         }
         try {
-            const response = await axios.post("http://localhost/mypass/reset_password.php", {
+            const response = await axios.post("http://localhost/mypass/forgot_password.php", {
+                action: "update_password",
                 email,
-                new_password: newPassword,
+                newPassword,
             });
             if (response.data.success) {
-                alert("Password reset successfully!");
-                navigate("/login"); // Redirect to login page
+                setMessage("Password updated successfully. Please log in.");
+                setStep(1); // Reset to Step 1
             } else {
                 setMessage(response.data.message);
             }
         } catch (error) {
+            console.error("Error updating password:", error);
             setMessage("An error occurred. Please try again.");
-            console.error(error);
         }
-    };
-
-    // Handle answer input change
-    const handleAnswerChange = (index, value) => {
-        const updatedAnswers = [...answers];
-        updatedAnswers[index] = value;
-        setAnswers(updatedAnswers);
     };
 
     return (
         <div>
             <h2>Forgot Password</h2>
             {message && <p style={{ color: "red" }}>{message}</p>}
+
             {step === 1 && (
                 <form onSubmit={handleEmailSubmit}>
+                    <label>Email:</label>
                     <input
                         type="email"
-                        placeholder="Enter your email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
@@ -98,6 +94,7 @@ const ForgotPassword = () => {
                     <button type="submit">Next</button>
                 </form>
             )}
+
             {step === 2 && (
                 <form onSubmit={handleAnswersSubmit}>
                     {questions.map((question, index) => (
@@ -105,9 +102,12 @@ const ForgotPassword = () => {
                             <label>{question}</label>
                             <input
                                 type="text"
-                                placeholder={`Answer ${index + 1}`}
                                 value={answers[index]}
-                                onChange={(e) => handleAnswerChange(index, e.target.value)}
+                                onChange={(e) => {
+                                    const newAnswers = [...answers];
+                                    newAnswers[index] = e.target.value;
+                                    setAnswers(newAnswers);
+                                }}
                                 required
                             />
                         </div>
@@ -115,18 +115,19 @@ const ForgotPassword = () => {
                     <button type="submit">Next</button>
                 </form>
             )}
+
             {step === 3 && (
-                <form onSubmit={handlePasswordReset}>
+                <form onSubmit={handlePasswordSubmit}>
+                    <label>New Password:</label>
                     <input
                         type="password"
-                        placeholder="Enter new password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         required
                     />
+                    <label>Confirm New Password:</label>
                     <input
                         type="password"
-                        placeholder="Confirm new password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         required
