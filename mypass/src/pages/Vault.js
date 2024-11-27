@@ -11,7 +11,7 @@ const Vault = () => {
     const navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem("user"));
 
-    const AUTO_LOCK_TIME =  30 * 1000; // 5 minutes in milliseconds
+    const AUTO_LOCK_TIME = 2 * 30 * 1000; // 2 minutes in milliseconds
     let activityTimeout;
 
     if (!user) {
@@ -19,23 +19,28 @@ const Vault = () => {
     }
 
     const typeFields = {
-        Login: ["Site/Store Name", "Username", "Password", "URL"],
+        Login: ["URL", "Username", "Password"],
         CreditCard: ["Card Type", "Card Number", "Expiry Date", "CVV"],
-        Identity: ["Full Name", "ID Number", "Date of Birth"],
+        Identity: ["Document Type", "Document Number", "Expiry Date"],
         SecureNote: ["Title", "Note"],
+    };
+
+    const sensitiveFields = {
+        Login: ["Username", "Password"],
+        CreditCard: ["Card Number", "Expiry Date", "CVV"],
+        SecureNote: ["Note"],
+        Identity: ["Document Number", "Expiry Date"],
     };
 
     useEffect(() => {
         fetchItems();
         startInactivityTimer();
 
-        // Listen for user activity
         document.addEventListener("mousemove", resetInactivityTimer);
         document.addEventListener("keypress", resetInactivityTimer);
         document.addEventListener("click", resetInactivityTimer);
 
         return () => {
-            // Cleanup event listeners and timer
             clearTimeout(activityTimeout);
             document.removeEventListener("mousemove", resetInactivityTimer);
             document.removeEventListener("keypress", resetInactivityTimer);
@@ -56,8 +61,8 @@ const Vault = () => {
 
     const handleAutoLock = () => {
         alert("You have been logged out due to inactivity.");
-        localStorage.removeItem("user"); // Clear user session
-        navigate("/login"); // Redirect to login page
+        localStorage.removeItem("user");
+        navigate("/login");
     };
 
     const fetchItems = async () => {
@@ -78,6 +83,9 @@ const Vault = () => {
         e.preventDefault();
         const action = isEditing ? "update" : "create";
 
+        console.log("FormData before submission:", formData); // Log the formData
+        console.log("Edit ID:", editId); // Log the editId
+
         try {
             const response = await axios.post("http://localhost/mypass/vault.php", {
                 action,
@@ -92,6 +100,8 @@ const Vault = () => {
                 setFormData({ type: "Login", data: {} });
                 setIsEditing(false);
                 setEditId(null);
+            } else {
+                console.error("Update failed:", response.data.message);
             }
         } catch (error) {
             console.error(`Error ${action}ing item:`, error);
@@ -115,6 +125,7 @@ const Vault = () => {
     };
 
     const handleEdit = (item) => {
+        console.log("Editing item:", item); // Log item data being edited
         setFormData({ type: item.type, data: JSON.parse(item.data) });
         setIsEditing(true);
         setEditId(item.id);
@@ -198,32 +209,37 @@ const Vault = () => {
                     return (
                         <li key={item.id} style={{ marginBottom: "15px" }}>
                             <strong>{item.type}:</strong>
-                            {Object.entries(itemData).map(([key, value]) => (
-                                <div key={key} style={{ display: "flex", alignItems: "center", marginTop: "5px" }}>
-                                    <span style={{ marginRight: "10px" }}>
-                                        {key}:{" "}
-                                        {isUnmasked(item.id, key) ? (
-                                            value
-                                        ) : (
-                                            "****"
+                            {Object.entries(itemData).map(([key, value]) => {
+                                const isSensitive = sensitiveFields[item.type]?.includes(key);
+                                return (
+                                    <div key={key} style={{ display: "flex", alignItems: "center", marginTop: "5px" }}>
+                                        <span style={{ marginRight: "10px" }}>
+                                            {key}:{" "}
+                                            {isSensitive && !isUnmasked(item.id, key) ? (
+                                                "****"
+                                            ) : (
+                                                value
+                                            )}
+                                        </span>
+                                        {isSensitive && (
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleMask(item.id, key)}
+                                                style={{ marginLeft: "10px" }}
+                                            >
+                                                {isUnmasked(item.id, key) ? "Mask" : "Unmask"}
+                                            </button>
                                         )}
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onClick={() => toggleMask(item.id, key)}
-                                        style={{ marginLeft: "10px" }}
-                                    >
-                                        {isUnmasked(item.id, key) ? "Mask" : "Unmask"}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleCopy(value)}
-                                        style={{ marginLeft: "10px" }}
-                                    >
-                                        Copy
-                                    </button>
-                                </div>
-                            ))}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleCopy(value)}
+                                            style={{ marginLeft: "10px" }}
+                                        >
+                                            Copy
+                                        </button>
+                                    </div>
+                                );
+                            })}
                             <button onClick={() => handleEdit(item)} style={{ marginRight: "10px" }}>Edit</button>
                             <button onClick={() => handleDelete(item.id)}>Delete</button>
                         </li>
