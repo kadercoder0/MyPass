@@ -1,6 +1,9 @@
+// Vault.js
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import notifier from "../patterns/Notifier";  // Import the Notifier
+import Notifications from "./Notifications";  // Import the Notifications component
 
 const Vault = () => {
     const [items, setItems] = useState([]);
@@ -73,18 +76,48 @@ const Vault = () => {
             });
             if (response.data.success) {
                 setItems(response.data.items);
+                checkForIssues(response.data.items);  // Check for weak passwords or expired items
             }
         } catch (error) {
             console.error("Error fetching items:", error);
         }
     };
 
+    // Check for weak passwords or expired cards/documents and notify
+    const checkForIssues = (items) => {
+        items.forEach((item) => {
+            const itemData = JSON.parse(item.data);
+
+            // Check for weak passwords
+            if (item.type === "Login" && itemData.Password) {
+                if (itemData.Password.length < 8 || !/[A-Z]/.test(itemData.Password) || !/\d/.test(itemData.Password)) {
+                    notifier.notify(`Weak password detected for login item with URL: ${itemData.URL}`);
+                }
+            }
+
+            // Check for credit card expiration
+            if (item.type === "CreditCard" && itemData["Expiry Date"]) {
+                const expiryDate = new Date(itemData["Expiry Date"]);
+                const currentDate = new Date();
+                if (expiryDate < currentDate) {
+                    notifier.notify(`Credit card has expired: ${itemData["Card Number"]}`);
+                }
+            }
+
+            // Check for identity document expiration
+            if (item.type === "Identity" && itemData["Expiry Date"]) {
+                const expiryDate = new Date(itemData["Expiry Date"]);
+                const currentDate = new Date();
+                if (expiryDate < currentDate) {
+                    notifier.notify(`Document has expired: ${itemData["Document Type"]}`);
+                }
+            }
+        });
+    };
+
     const handleCreateOrUpdate = async (e) => {
         e.preventDefault();
         const action = isEditing ? "update" : "create";
-
-        console.log("FormData before submission:", formData); // Log the formData
-        console.log("Edit ID:", editId); // Log the editId
 
         try {
             const response = await axios.post("http://localhost/mypass/vault.php", {
@@ -125,7 +158,6 @@ const Vault = () => {
     };
 
     const handleEdit = (item) => {
-        console.log("Editing item:", item); // Log item data being edited
         setFormData({ type: item.type, data: JSON.parse(item.data) });
         setIsEditing(true);
         setEditId(item.id);
@@ -162,6 +194,7 @@ const Vault = () => {
 
     return (
         <div>
+            <Notifications /> {/* Add Notifications component here */}
             <h2>Vault</h2>
             <button onClick={() => navigate("/login")} style={{ marginBottom: "20px" }}>
                 Logout
