@@ -4,6 +4,8 @@ import axios from "axios";
 import DataProxy from "../patterns/DataProxy";  // Import the DataProxy class
 import notifier from "../patterns/Notifier";  // Import the Notifier
 import Notifications from "./Notifications";  // Import the Notifications component
+import SessionManager from "../patterns/SessionManager"; // Adjust path as necessary
+
 
 const Vault = () => {
     const [items, setItems] = useState([]);
@@ -202,9 +204,16 @@ const Vault = () => {
         <div>
             <Notifications /> {/* Add Notifications component here */}
             <h2>Vault</h2>
-            <button onClick={() => navigate("/login")} style={{ marginBottom: "20px" }}>
+            <button
+                onClick={() => {
+                    SessionManager.clearSession(); // Clear user session
+                    navigate("/login");  // Redirect to login page
+                }}
+                style={{ marginBottom: "20px" }}
+            >
                 Logout
             </button>
+
 
             <form onSubmit={handleCreateOrUpdate}>
                 <select
