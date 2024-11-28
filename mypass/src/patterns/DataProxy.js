@@ -1,35 +1,30 @@
 // DataProxy.js
+
 class DataProxy {
-    constructor(data, sensitiveFields) {
-        this.sensitiveFields = sensitiveFields; // Fields that require masking
-        this.unmaskedFields = {}; // Tracks the unmasked state of fields
-        this.proxy = new Proxy(data, {
-            get: (target, prop) => {
-                if (this.sensitiveFields.includes(prop) && !this.unmaskedFields[prop]) {
-                    return "****"; // Masked value
-                }
-                return target[prop];
-            },
-            set: (target, prop, value) => {
-                target[prop] = value;
-                return true;
-            },
-        });
+    constructor(data) {
+      this.data = data;
+      this.maskedData = {};
     }
-
-    toggleMask(field) {
-        if (this.sensitiveFields.includes(field)) {
-            this.unmaskedFields[field] = !this.unmaskedFields[field];
-        }
+  
+    maskData(field) {
+      // Masks the data for a specific field
+      this.maskedData[field] = '****';
     }
-
-    isUnmasked(field) {
-        return !!this.unmaskedFields[field];
+  
+    unmaskData(field) {
+      // Unmasks the data for a specific field
+      this.maskedData[field] = this.data[field];
     }
-
-    getProxy() {
-        return this.proxy;
+  
+    getData(field) {
+      // Returns the masked or unmasked data depending on the status
+      if (this.maskedData[field]) {
+        return this.maskedData[field];
+      } else {
+        return this.data[field];
+      }
     }
-}
-
-export default DataProxy;
+  }
+  
+  export default DataProxy;
+  

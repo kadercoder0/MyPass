@@ -1,7 +1,7 @@
-// Vault.js
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import DataProxy from "../patterns/DataProxy";  // Import the DataProxy class
 import notifier from "../patterns/Notifier";  // Import the Notifier
 import Notifications from "./Notifications";  // Import the Notifications component
 
@@ -10,7 +10,7 @@ const Vault = () => {
     const [formData, setFormData] = useState({ type: "Login", data: {} });
     const [isEditing, setIsEditing] = useState(false);
     const [editId, setEditId] = useState(null);
-    const [unmaskedFields, setUnmaskedFields] = useState({});
+    const [unmaskedFields, setUnmaskedFields] = useState({});  // Tracks which fields are unmasked
     const navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem("user"));
 
@@ -74,6 +74,7 @@ const Vault = () => {
                 action: "read",
                 user_id: user.id,
             });
+
             if (response.data.success) {
                 setItems(response.data.items);
                 checkForIssues(response.data.items);  // Check for weak passwords or expired items
@@ -83,7 +84,6 @@ const Vault = () => {
         }
     };
 
-    // Check for weak passwords or expired cards/documents and notify
     const checkForIssues = (items) => {
         items.forEach((item) => {
             const itemData = JSON.parse(item.data);
@@ -109,7 +109,6 @@ const Vault = () => {
                     notifier.notify(`Credit card has expired: ${itemData["Card Number"]}`);
                 }
             }
-
 
             // Check for identity document expiration
             if (item.type === "Identity" && itemData["Expiry Date"]) {
@@ -245,23 +244,25 @@ const Vault = () => {
             <ul>
                 {items.map((item) => {
                     const itemData = JSON.parse(item.data);
+                    const dataProxy = new DataProxy(itemData); // Instantiate the proxy
 
                     return (
                         <li key={item.id} style={{ marginBottom: "15px" }}>
                             <strong>{item.type}:</strong>
                             {Object.entries(itemData).map(([key, value]) => {
                                 const isSensitive = sensitiveFields[item.type]?.includes(key);
-                                return (
-                                    <div key={key} style={{ display: "flex", alignItems: "center", marginTop: "5px" }}>
-                                        <span style={{ marginRight: "10px" }}>
-                                            {key}:{" "}
-                                            {isSensitive && !isUnmasked(item.id, key) ? (
-                                                "****"
-                                            ) : (
-                                                value
-                                            )}
-                                        </span>
-                                        {isSensitive && (
+
+                                if (isSensitive) {
+                                    // Mask or unmask the data based on the state
+                                    const data = isUnmasked(item.id, key)
+                                        ? dataProxy.getData(key)  // Get unmasked data
+                                        : "****";  // Mask the data
+
+                                    return (
+                                        <div key={key} style={{ display: "flex", alignItems: "center", marginTop: "5px" }}>
+                                            <span style={{ marginRight: "10px" }}>
+                                                {key}: {data}
+                                            </span>
                                             <button
                                                 type="button"
                                                 onClick={() => toggleMask(item.id, key)}
@@ -269,19 +270,23 @@ const Vault = () => {
                                             >
                                                 {isUnmasked(item.id, key) ? "Mask" : "Unmask"}
                                             </button>
-                                        )}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleCopy(value)}
-                                            style={{ marginLeft: "10px" }}
-                                        >
-                                            Copy
-                                        </button>
+                                        </div>
+                                    );
+                                }
+
+                                return (
+                                    <div key={key} style={{ marginTop: "5px" }}>
+                                        <span>{key}: {value}</span>
                                     </div>
                                 );
                             })}
-                            <button onClick={() => handleEdit(item)} style={{ marginRight: "10px" }}>Edit</button>
-                            <button onClick={() => handleDelete(item.id)}>Delete</button>
+
+                            <button onClick={() => handleEdit(item)} style={{ marginLeft: "10px" }}>
+                                Edit
+                            </button>
+                            <button onClick={() => handleDelete(item.id)} style={{ marginLeft: "10px" }}>
+                                Delete
+                            </button>
                         </li>
                     );
                 })}
