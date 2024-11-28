@@ -97,12 +97,19 @@ const Vault = () => {
 
             // Check for credit card expiration
             if (item.type === "CreditCard" && itemData["Expiry Date"]) {
-                const expiryDate = new Date(itemData["Expiry Date"]);
+                const [month, year] = itemData["Expiry Date"].split("/").map(Number); // Split MM/YYYY
+                const expiryDate = new Date(year, month - 1); // Create a Date object with the month (0-based index)
                 const currentDate = new Date();
+                
+                // Set currentDate to the start of the next month to ensure valid comparisons
+                currentDate.setDate(1); 
+                currentDate.setHours(0, 0, 0, 0);
+
                 if (expiryDate < currentDate) {
                     notifier.notify(`Credit card has expired: ${itemData["Card Number"]}`);
                 }
             }
+
 
             // Check for identity document expiration
             if (item.type === "Identity" && itemData["Expiry Date"]) {
