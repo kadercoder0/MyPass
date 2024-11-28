@@ -1,4 +1,3 @@
-// PasswordBuilder.js
 class PasswordBuilder {
     constructor() {
         this.password = "";
@@ -49,9 +48,10 @@ class PasswordBuilder {
             password += allChars[Math.floor(Math.random() * allChars.length)];
         }
 
-        password = password.split('').sort(() => 0.5 - Math.random()).join('');
+        password = password.split("").sort(() => 0.5 - Math.random()).join("");
         return password;
     }
+
 }
 
 export default PasswordBuilder;
