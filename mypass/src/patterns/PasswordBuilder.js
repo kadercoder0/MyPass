@@ -1,84 +1,56 @@
+// PasswordBuilder.js
 class PasswordBuilder {
     constructor() {
-        this.uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        this.lowercase = "abcdefghijklmnopqrstuvwxyz";
-        this.numbers = "0123456789";
-        this.specialChars = "!@#$%^&*()";
-        this.allChars = this.uppercase + this.lowercase + this.numbers + this.specialChars;
+        this.password = "";
         this.length = 12; // Default length
+        this.includeUppercase = true;
+        this.includeNumbers = true;
+        this.includeSpecialChars = true;
     }
 
     setLength(length) {
         this.length = length;
-        return this; // Allows chaining
+        return this; // Allow chaining
     }
 
-    includeUppercase() {
-        this.uppercaseIncluded = true;
-        return this;
+    setUppercase(include) {
+        this.includeUppercase = include;
+        return this; // Allow chaining
     }
 
-    includeLowercase() {
-        this.lowercaseIncluded = true;
-        return this;
+    setNumbers(include) {
+        this.includeNumbers = include;
+        return this; // Allow chaining
     }
 
-    includeNumbers() {
-        this.numbersIncluded = true;
-        return this;
-    }
-
-    includeSpecialChars() {
-        this.specialCharsIncluded = true;
-        return this;
+    setSpecialChars(include) {
+        this.includeSpecialChars = include;
+        return this; // Allow chaining
     }
 
     generate() {
+        const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const lowercase = "abcdefghijklmnopqrstuvwxyz";
+        const numbers = "0123456789";
+        const specialChars = "!@#$%^&*()";
+        let allChars = lowercase; // Start with lowercase
+
+        if (this.includeUppercase) allChars += uppercase;
+        if (this.includeNumbers) allChars += numbers;
+        if (this.includeSpecialChars) allChars += specialChars;
+
         let password = "";
+        password += uppercase[Math.floor(Math.random() * uppercase.length)];
+        password += lowercase[Math.floor(Math.random() * lowercase.length)];
+        password += numbers[Math.floor(Math.random() * numbers.length)];
+        password += specialChars[Math.floor(Math.random() * specialChars.length)];
 
-        // Ensure each character type is included at least once
-        if (this.uppercaseIncluded) {
-            password += this.uppercase[Math.floor(Math.random() * this.uppercase.length)];
-        }
-        if (this.lowercaseIncluded) {
-            password += this.lowercase[Math.floor(Math.random() * this.lowercase.length)];
-        }
-        if (this.numbersIncluded) {
-            password += this.numbers[Math.floor(Math.random() * this.numbers.length)];
-        }
-        if (this.specialCharsIncluded) {
-            password += this.specialChars[Math.floor(Math.random() * this.specialChars.length)];
+        for (let i = password.length; i < this.length; i++) {
+            password += allChars[Math.floor(Math.random() * allChars.length)];
         }
 
-        // Fill the remaining length with random characters from all allowed characters
-        while (password.length < this.length) {
-            password += this.allChars[Math.floor(Math.random() * this.allChars.length)];
-        }
-
-        // Shuffle the password to ensure randomness
-        return password.split('').sort(() => 0.5 - Math.random()).join('');
-    }
-
-    static checkStrength(password) {
-        const hasUppercase = /[A-Z]/.test(password);
-        const hasLowercase = /[a-z]/.test(password);
-        const hasNumber = /\d/.test(password);
-        const hasSpecialChar = /[!@#$%^&*()]/.test(password);
-        const isLongEnough = password.length >= 8;
-
-        if (!isLongEnough) {
-            return "Password must be at least 8 characters long.";
-        } else if (!hasUppercase) {
-            return "Password must contain at least one uppercase letter.";
-        } else if (!hasLowercase) {
-            return "Password must contain at least one lowercase letter.";
-        } else if (!hasNumber) {
-            return "Password must contain at least one number.";
-        } else if (!hasSpecialChar) {
-            return "Password must contain at least one special character.";
-        } else {
-            return "Strong password!";
-        }
+        password = password.split('').sort(() => 0.5 - Math.random()).join('');
+        return password;
     }
 }
 

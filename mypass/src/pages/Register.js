@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // Import React Router's navigation hook
+import { useNavigate } from "react-router-dom";
+import PasswordBuilder from '../patterns/PasswordBuilder'; // Import the PasswordBuilder
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -11,33 +12,25 @@ const Register = () => {
         securityAnswers: ["", "", ""],
     });
 
-    const [passwordStrength, setPasswordStrength] = useState(""); // For weak password warning
-    const [showPassword, setShowPassword] = useState(false); // For password visibility toggle
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false); // For confirm password visibility toggle
-    const navigate = useNavigate(); // React Router navigation hook
+    const [passwordStrength, setPasswordStrength] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const navigate = useNavigate();
 
     const generatePassword = () => {
-        const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        const lowercase = "abcdefghijklmnopqrstuvwxyz";
-        const numbers = "0123456789";
-        const specialChars = "!@#$%^&*()";
-        const allChars = uppercase + lowercase + numbers + specialChars;
+        // Create an instance of the PasswordBuilder
+        const passwordBuilder = new PasswordBuilder()
+            .setLength(12) // Set desired password length
+            .setUppercase(true) // Include uppercase letters
+            .setNumbers(true) // Include numbers
+            .setSpecialChars(true); // Include special characters
 
-        let password = "";
-
-        password += uppercase[Math.floor(Math.random() * uppercase.length)];
-        password += lowercase[Math.floor(Math.random() * lowercase.length)];
-        password += numbers[Math.floor(Math.random() * numbers.length)];
-        password += specialChars[Math.floor(Math.random() * specialChars.length)];
-
-        for (let i = password.length; i < 12; i++) {
-            password += allChars[Math.floor(Math.random() * allChars.length)];
-        }
-
-        password = password.split('').sort(() => 0.5 - Math.random()).join('');
-
-        setFormData({ ...formData, password, confirmPassword: password });
-        checkPasswordStrength(password);
+        // Generate password using the builder
+        const newPassword = passwordBuilder.generate();
+        
+        // Set the generated password and confirm password
+        setFormData({ ...formData, password: newPassword, confirmPassword: newPassword });
+        checkPasswordStrength(newPassword);
     };
 
     const checkPasswordStrength = (password) => {
@@ -95,7 +88,7 @@ const Register = () => {
                 securityQuestions: ["", "", ""],
                 securityAnswers: ["", "", ""],
             });
-            navigate("/login"); // Redirect to login page
+            navigate("/login");
         } catch (error) {
             console.error("Error:", error.response?.data || error.message);
             alert("Registration failed: " + (error.response?.data?.error || error.message));
