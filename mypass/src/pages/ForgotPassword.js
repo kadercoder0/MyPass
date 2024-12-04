@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import PasswordBuilder from "../patterns/PasswordBuilder";
@@ -7,6 +7,7 @@ import {
     SecurityAnswerValidationHandler,
     PasswordUpdateHandler,
 } from "../patterns/CORHandler";
+import uiController from "../patterns/UIController";
 
 const ForgotPassword = () => {
     const [step, setStep] = useState(1);
@@ -18,7 +19,6 @@ const ForgotPassword = () => {
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [message, setMessage] = useState("");
-
     const navigate = useNavigate();
 
     const emailValidationHandler = new EmailValidationHandler();
@@ -27,6 +27,12 @@ const ForgotPassword = () => {
 
     emailValidationHandler.nextHandler = securityAnswerValidationHandler;
     securityAnswerValidationHandler.nextHandler = passwordUpdateHandler;
+
+    useEffect(() => {
+        uiController.register("ForgotPassword", {
+            notifySuccess: (message) => setMessage(message),
+        });
+    }, []);
 
     const checkPasswordStrength = (password) => {
         const hasUppercase = /[A-Z]/.test(password);
@@ -101,13 +107,13 @@ const ForgotPassword = () => {
             });
 
             if (response.data.success) {
-                setMessage("Password updated successfully. Redirecting to login...");
+                setMessage("Password updated successfully.");
+                uiController.notify("ForgotPassword", "PASSWORD_RESET");
                 setTimeout(() => navigate("/login"), 2000);
             } else {
                 setMessage(response.data.message);
             }
         } catch (error) {
-            console.error("Error updating password:", error);
             setMessage("An error occurred. Please try again.");
         }
     };
@@ -130,7 +136,6 @@ const ForgotPassword = () => {
         <div>
             <h2>Forgot Password</h2>
             {message && <p style={{ color: message === "Strong password!" ? "green" : "red" }}>{message}</p>}
-
             {step === 1 && (
                 <form onSubmit={handleEmailSubmit}>
                     <label>Email:</label>
@@ -143,7 +148,6 @@ const ForgotPassword = () => {
                     <button type="submit">Next</button>
                 </form>
             )}
-
             {step === 2 && (
                 <form onSubmit={handleAnswersSubmit}>
                     {questions.map((question, index) => (
@@ -164,7 +168,6 @@ const ForgotPassword = () => {
                     <button type="submit">Next</button>
                 </form>
             )}
-
             {step === 3 && (
                 <form onSubmit={handlePasswordSubmit}>
                     <label>New Password:</label>

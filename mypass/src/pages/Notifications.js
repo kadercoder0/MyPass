@@ -1,6 +1,6 @@
-// Notifications.js
 import React, { useState, useEffect } from "react";
 import notifier from "../patterns/Notifier";
+import uiController from "../patterns/UIController";
 
 const Notifications = () => {
     const [messages, setMessages] = useState([]);
@@ -8,19 +8,20 @@ const Notifications = () => {
     useEffect(() => {
         const handleNewNotification = (message) => {
             setMessages((prevMessages) => [...prevMessages, message]);
-
-            // Optionally, remove the notification after 5 seconds
             setTimeout(() => {
                 setMessages((prevMessages) => prevMessages.filter((msg) => msg !== message));
             }, 5000);
         };
 
-        // Subscribe to the notifier for new messages
         notifier.subscribe(handleNewNotification);
 
-        // Cleanup the subscription when the component unmounts
+        uiController.register("Notifications", {
+            addNotification: (message) => setMessages((prevMessages) => [...prevMessages, message]),
+        });
+
         return () => {
             notifier.unsubscribe(handleNewNotification);
+            uiController.register("Notifications", null);
         };
     }, []);
 

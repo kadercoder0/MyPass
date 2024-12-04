@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import PasswordBuilder from '../patterns/PasswordBuilder'; // Import the PasswordBuilder
+import uiController from "../patterns/UIController";
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -72,12 +73,17 @@ const Register = () => {
             alert("Please use a strong password before registering.");
             return;
         }
+        
 
         try {
             const response = await axios.post(
                 "http://localhost/mypass/register.php",
                 formData
             );
+            if (response.data.success) {
+                uiController.notify("Register", "REGISTER_SUCCESS");
+            }
+            
             alert(response.data.message);
 
             // Reset the form and navigate to login
