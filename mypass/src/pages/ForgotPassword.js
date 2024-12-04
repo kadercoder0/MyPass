@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import PasswordBuilder from "../patterns/PasswordBuilder"; // Import PasswordBuilder
+import PasswordBuilder from "../patterns/PasswordBuilder";
+import {
+    EmailValidationHandler,
+    SecurityAnswerValidationHandler,
+    PasswordUpdateHandler,
+} from "../patterns/CORHandler";
 
 const ForgotPassword = () => {
     const [step, setStep] = useState(1);
@@ -15,6 +20,13 @@ const ForgotPassword = () => {
     const [message, setMessage] = useState("");
 
     const navigate = useNavigate();
+
+    const emailValidationHandler = new EmailValidationHandler();
+    const securityAnswerValidationHandler = new SecurityAnswerValidationHandler();
+    const passwordUpdateHandler = new PasswordUpdateHandler();
+
+    emailValidationHandler.nextHandler = securityAnswerValidationHandler;
+    securityAnswerValidationHandler.nextHandler = passwordUpdateHandler;
 
     const checkPasswordStrength = (password) => {
         const hasUppercase = /[A-Z]/.test(password);
@@ -37,39 +49,33 @@ const ForgotPassword = () => {
 
     const handleEmailSubmit = async (e) => {
         e.preventDefault();
-        try {
-            const response = await axios.post("http://localhost/mypass/forgot_password.php", {
-                action: "validate_email",
-                email,
-            });
-            if (response.data.success) {
-                setQuestions(response.data.questions);
-                setStep(2);
-            } else {
-                setMessage(response.data.message);
-            }
-        } catch (error) {
-            console.error("Error validating email:", error);
-            setMessage("An error occurred. Please try again.");
+        const request = {
+            action: "validate_email",
+            email: email.trim(),
+        };
+
+        const response = await emailValidationHandler.handle(request);
+        if (response.success) {
+            setQuestions(response.questions);
+            setStep(2);
+        } else {
+            setMessage(response.message);
         }
     };
 
     const handleAnswersSubmit = async (e) => {
         e.preventDefault();
-        try {
-            const response = await axios.post("http://localhost/mypass/forgot_password.php", {
-                action: "validate_answers",
-                email: email.trim(),
-                answers: answers.map((answer) => answer.trim()),
-            });
-            if (response.data.success) {
-                setStep(3);
-            } else {
-                setMessage(response.data.message);
-            }
-        } catch (error) {
-            console.error("Error validating answers:", error);
-            setMessage("An error occurred. Please try again.");
+        const request = {
+            action: "validate_answers",
+            email: email.trim(),
+            answers: answers.map((answer) => answer.trim()),
+        };
+
+        const response = await securityAnswerValidationHandler.handle(request);
+        if (response.success) {
+            setStep(3);
+        } else {
+            setMessage(response.message);
         }
     };
 
@@ -90,9 +96,10 @@ const ForgotPassword = () => {
         try {
             const response = await axios.post("http://localhost/mypass/forgot_password.php", {
                 action: "update_password",
-                email,
+                email: email.trim(),
                 newPassword,
             });
+
             if (response.data.success) {
                 setMessage("Password updated successfully. Redirecting to login...");
                 setTimeout(() => navigate("/login"), 2000);
@@ -158,51 +165,50 @@ const ForgotPassword = () => {
                 </form>
             )}
 
-{step === 3 && (
-    <form onSubmit={handlePasswordSubmit}>
-        <label>New Password:</label>
-        <div style={{ display: "flex", alignItems: "center" }}>
-            <input
-                type={showNewPassword ? "text" : "password"}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-            />
-            <button
-                type="button"
-                onClick={() => setShowNewPassword(!showNewPassword)}
-                style={{ marginLeft: "10px" }}
-            >
-                {showNewPassword ? "Hide" : "Show"}
-            </button>
-        </div>
-        <label>Confirm New Password:</label>
-        <div style={{ display: "flex", alignItems: "center" }}>
-            <input
-                type={showConfirmPassword ? "text" : "password"}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-            />
-            <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                style={{ marginLeft: "10px" }}
-            >
-                {showConfirmPassword ? "Hide" : "Show"}
-            </button>
-        </div>
-        <button
-            type="button"
-            onClick={generateStrongPassword}
-            style={{ marginTop: "10px" }}
-        >
-            Generate Strong Password
-        </button>
-        <button type="submit">Reset Password</button>
-    </form>
-)}
-
+            {step === 3 && (
+                <form onSubmit={handlePasswordSubmit}>
+                    <label>New Password:</label>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                        <input
+                            type={showNewPassword ? "text" : "password"}
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            required
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            style={{ marginLeft: "10px" }}
+                        >
+                            {showNewPassword ? "Hide" : "Show"}
+                        </button>
+                    </div>
+                    <label>Confirm New Password:</label>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                        <input
+                            type={showConfirmPassword ? "text" : "password"}
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            style={{ marginLeft: "10px" }}
+                        >
+                            {showConfirmPassword ? "Hide" : "Show"}
+                        </button>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={generateStrongPassword}
+                        style={{ marginTop: "10px" }}
+                    >
+                        Generate Strong Password
+                    </button>
+                    <button type="submit">Reset Password</button>
+                </form>
+            )}
         </div>
     );
 };
