@@ -178,15 +178,22 @@ const Vault = () => {
         }));
     };
 
-    const handleCopy = (text) => {
-        navigator.clipboard.writeText(text)
+    const handleCopy = (itemId, field) => {
+        const item = items.find(item => item.id === itemId); // Find the item by ID
+        const itemData = JSON.parse(item.data); // Parse the data field to access the original data
+    
+        const data = itemData[field]; // Get the real value of the field, not the masked one
+    
+        navigator.clipboard.writeText(data)
             .then(() => {
-                alert(`Copied to clipboard: ${text}`);
+                alert(`Copied to clipboard: ${data}`);
             })
             .catch((err) => {
                 console.error("Failed to copy: ", err);
             });
     };
+    
+    
 
     const toggleMask = (itemId, field) => {
         setUnmaskedFields((prev) => ({
@@ -236,13 +243,6 @@ const Vault = () => {
                             onChange={(e) => handleInputChange(field, e.target.value)}
                             required
                         />
-                        <button
-                            type="button"
-                            onClick={() => handleCopy(formData.data[field] || "")}
-                            style={{ marginLeft: "10px" }}
-                        >
-                            Copy
-                        </button>
                     </div>
                 ))}
 
@@ -251,54 +251,64 @@ const Vault = () => {
 
             <h3>Items</h3>
             <ul>
-                {items.map((item) => {
-                    const itemData = JSON.parse(item.data);
-                    const dataProxy = new DataProxy(itemData); // Instantiate the proxy
+            {items.map((item) => {
+    const itemData = JSON.parse(item.data);
+    const dataProxy = new DataProxy(itemData); // Instantiate the proxy
+
+    return (
+        <li key={item.id} style={{ marginBottom: "15px" }}>
+            <strong>{item.type}:</strong>
+            {Object.entries(itemData).map(([key, value]) => {
+                const isSensitive = sensitiveFields[item.type]?.includes(key);
+
+                if (isSensitive) {
+                    // Mask or unmask the data based on the state
+                    const data = isUnmasked(item.id, key)
+                        ? dataProxy.getData(key)  // Get unmasked data
+                        : "****";  // Mask the data
 
                     return (
-                        <li key={item.id} style={{ marginBottom: "15px" }}>
-                            <strong>{item.type}:</strong>
-                            {Object.entries(itemData).map(([key, value]) => {
-                                const isSensitive = sensitiveFields[item.type]?.includes(key);
-
-                                if (isSensitive) {
-                                    // Mask or unmask the data based on the state
-                                    const data = isUnmasked(item.id, key)
-                                        ? dataProxy.getData(key)  // Get unmasked data
-                                        : "****";  // Mask the data
-
-                                    return (
-                                        <div key={key} style={{ display: "flex", alignItems: "center", marginTop: "5px" }}>
-                                            <span style={{ marginRight: "10px" }}>
-                                                {key}: {data}
-                                            </span>
-                                            <button
-                                                type="button"
-                                                onClick={() => toggleMask(item.id, key)}
-                                                style={{ marginLeft: "10px" }}
-                                            >
-                                                {isUnmasked(item.id, key) ? "Mask" : "Unmask"}
-                                            </button>
-                                        </div>
-                                    );
-                                }
-
-                                return (
-                                    <div key={key} style={{ marginTop: "5px" }}>
-                                        <span>{key}: {value}</span>
-                                    </div>
-                                );
-                            })}
-
-                            <button onClick={() => handleEdit(item)} style={{ marginLeft: "10px" }}>
-                                Edit
+                        <div key={key} style={{ display: "flex", alignItems: "center", marginTop: "5px" }}>
+                            <span style={{ marginRight: "10px" }}>
+                                {key}: {data}
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => toggleMask(item.id, key)}
+                                style={{ marginLeft: "10px" }}
+                            >
+                                {isUnmasked(item.id, key) ? "Mask" : "Unmask"}
                             </button>
-                            <button onClick={() => handleDelete(item.id)} style={{ marginLeft: "10px" }}>
-                                Delete
+                            <button
+                                type="button"
+                                onClick={() => handleCopy(item.id, key)}  // Pass itemId and field name to copy
+                                style={{ marginLeft: "10px" }}
+                            >
+                                Copy
                             </button>
-                        </li>
+                        </div>
                     );
-                })}
+                }
+
+                return (
+                    <div key={key} style={{ marginTop: "5px" }}>
+                        <span>{key}: {value}</span>
+                    </div>
+                );
+            })}
+
+            <button onClick={() => handleEdit(item)} style={{ marginLeft: "10px" }}>
+                Edit
+            </button>
+            <button onClick={() => handleDelete(item.id)} style={{ marginLeft: "10px" }}>
+                Delete
+            </button>
+        </li>
+    );
+})}
+
+
+
             </ul>
         </div>
     );
