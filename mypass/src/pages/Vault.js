@@ -100,11 +100,20 @@ const Vault = () => {
             const itemData = JSON.parse(item.data);
 
             // Check for weak passwords in login items
+            // Check for weak passwords in login items
             if (item.type === "Login" && itemData.Password) {
-                if (itemData.Password.length < 8 || !/[A-Z]/.test(itemData.Password) || !/\d/.test(itemData.Password)) {
+                const password = itemData.Password;
+                const minLength = 8;
+                const hasUpperCase = /[A-Z]/.test(password);
+                const hasLowerCase = /[a-z]/.test(password);
+                const hasDigits = /\d/.test(password);
+                const hasSpecialChars = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+                if (password.length < minLength || !hasUpperCase || !hasLowerCase || !hasDigits || !hasSpecialChars) {
                     notifier.notify(`Weak password detected for login item with URL: ${itemData.URL}`);
                 }
             }
+
 
             // Check for expired credit cards
             if (item.type === "CreditCard" && itemData["Expiry Date"]) {
