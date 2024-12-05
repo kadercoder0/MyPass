@@ -10,32 +10,40 @@ import {
 import uiController from "../patterns/UIController";
 import './styles.css';
 
-
 const ForgotPassword = () => {
+    // Track the current step in the process
     const [step, setStep] = useState(1);
+    // Store the email and the answers to the security questions
     const [email, setEmail] = useState("");
     const [questions, setQuestions] = useState([]);
     const [answers, setAnswers] = useState(["", "", ""]);
+    // Store the new and confirmed password
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    // Control password visibility
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    // Display messages to the user
     const [message, setMessage] = useState("");
     const navigate = useNavigate();
 
+    // Handlers for the validation and password update process
     const emailValidationHandler = new EmailValidationHandler();
     const securityAnswerValidationHandler = new SecurityAnswerValidationHandler();
     const passwordUpdateHandler = new PasswordUpdateHandler();
 
+    // Link the handlers to form a chain of responsibility
     emailValidationHandler.nextHandler = securityAnswerValidationHandler;
     securityAnswerValidationHandler.nextHandler = passwordUpdateHandler;
 
+    // Register success notifications when the component mounts
     useEffect(() => {
         uiController.register("ForgotPassword", {
             notifySuccess: (message) => setMessage(message),
         });
     }, []);
 
+    // Check if the password meets strength requirements
     const checkPasswordStrength = (password) => {
         const hasUppercase = /[A-Z]/.test(password);
         const hasNumber = /\d/.test(password);
@@ -55,6 +63,7 @@ const ForgotPassword = () => {
         }
     };
 
+    // Handle email submission and move to the next step if valid
     const handleEmailSubmit = async (e) => {
         e.preventDefault();
         const request = {
@@ -71,6 +80,7 @@ const ForgotPassword = () => {
         }
     };
 
+    // Handle security answer submission and proceed to next step if valid
     const handleAnswersSubmit = async (e) => {
         e.preventDefault();
         const request = {
@@ -87,6 +97,7 @@ const ForgotPassword = () => {
         }
     };
 
+    // Handle password update after validation
     const handlePasswordSubmit = async (e) => {
         e.preventDefault();
         const strengthMessage = checkPasswordStrength(newPassword);
@@ -120,6 +131,7 @@ const ForgotPassword = () => {
         }
     };
 
+    // Generate a strong password and set it for both fields
     const generateStrongPassword = () => {
         const passwordBuilder = new PasswordBuilder();
         const generatedPassword = passwordBuilder

@@ -3,19 +3,24 @@ import notifier from "../patterns/Notifier";
 import uiController from "../patterns/UIController";
 
 const Notifications = () => {
+    // State to store incoming notification messages
     const [messages, setMessages] = useState([]);
 
     useEffect(() => {
+        // Handler for new notifications
         const handleNewNotification = (message) => {
             setMessages((prevMessages) => [...prevMessages, message]);
         };
 
+        // Subscribe to the notifier for new messages
         notifier.subscribe(handleNewNotification);
 
+        // Register a UI controller for adding notifications
         uiController.register("Notifications", {
             addNotification: (message) => setMessages((prevMessages) => [...prevMessages, message]),
         });
 
+        // Cleanup subscription when the component is unmounted
         return () => {
             notifier.unsubscribe(handleNewNotification);
             uiController.register("Notifications", null);
@@ -24,6 +29,7 @@ const Notifications = () => {
 
     return (
         <div style={{ position: "fixed", top: 0, right: 0, zIndex: 1000 }}>
+            {/* Display each notification message */}
             {messages.map((message, index) => (
                 <div
                     key={index}
