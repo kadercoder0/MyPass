@@ -8,9 +8,6 @@ const Notifications = () => {
     useEffect(() => {
         const handleNewNotification = (message) => {
             setMessages((prevMessages) => [...prevMessages, message]);
-            setTimeout(() => {
-                setMessages((prevMessages) => prevMessages.filter((msg) => msg !== message));
-            }, 5000);
         };
 
         notifier.subscribe(handleNewNotification);

@@ -3,6 +3,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import SessionManager from "../patterns/SessionManager";
 import uiController from "../patterns/UIController";
+import './styles.css';
+
 
 const Login = () => {
     const [credentials, setCredentials] = useState({

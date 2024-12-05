@@ -1,0 +1,214 @@
+/* General Reset and Base Styling */
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+    color: #2c3e50;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+h2 {
+    font-size: 24px;
+    color: #34495e;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Container Styling */
+div.container {
+    max-width: 400px;
+    margin: 20px;
+    padding: 30px;
+    background: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Form Styling */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="text"],
+select {
+    padding: 15px;
+    border: 2px solid #bdc3c7;
+    border-radius: 10px;
+    font-size: 16px;
+    transition: border 0.3s ease, box-shadow 0.3s ease;
+    background: #ecf0f1;
+}
+
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="text"]:focus,
+select:focus {
+    border: 2px solid #3498db;
+    box-shadow: 0 0 8px rgba(52, 152, 219, 0.4);
+    outline: none;
+}
+
+button {
+    padding: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+button[type="submit"] {
+    background-color: #1abc9c;
+    color: white;
+}
+
+button[type="submit"]:hover {
+    background-color: #16a085;
+    transform: translateY(-2px);
+}
+
+button[type="button"] {
+    background-color: #3498db;
+    color: white;
+}
+
+button[type="button"]:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+}
+
+/* Password Visibility Toggle */
+button.toggle-password {
+    background: none;
+    color: #3498db;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 5px;
+    margin-left: 10px;
+}
+
+/* Error and Success Messages */
+p.error {
+    color: #e74c3c;
+    font-weight: bold;
+    text-align: center;
+    margin: 0;
+}
+
+p.success {
+    color: #2ecc71;
+    font-weight: bold;
+    text-align: center;
+    margin: 0;
+}
+
+/* Notifications */
+div.notifications {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    max-width: 300px;
+}
+
+div.notification {
+    background-color: #e74c3c;
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    animation: slideIn 0.3s ease-out, fadeOut 5s ease-out 4.7s;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+    }
+}
+
+/* Vault Styling */
+ul.vault-items {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+li.vault-item {
+    background: #ecf0f1;
+    margin: 15px 0;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+li.vault-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+li.vault-item div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+li.vault-item button {
+    margin-left: 10px;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 8px;
+}
+
+li.vault-item button.copy-button {
+    background: #f1c40f;
+    color: #ffffff;
+}
+
+li.vault-item button.copy-button:hover {
+    background: #f39c12;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    div.container {
+        width: 90%;
+    }
+
+    button {
+        font-size: 14px;
+    }
+
+    input,
+    select {
+        font-size: 14px;
+    }
+
+    ul.vault-items li {
+        font-size: 12px;
+    }
+}

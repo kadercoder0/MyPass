@@ -3,6 +3,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import PasswordBuilder from '../patterns/PasswordBuilder'; // Import the PasswordBuilder
 import uiController from "../patterns/UIController";
+import './styles.css';
+
 
 const Register = () => {
     const [formData, setFormData] = useState({

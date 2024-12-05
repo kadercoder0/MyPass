@@ -5,9 +5,12 @@ class Notifier {
     }
 
     // Register an observer
+    // Notifier.js
     subscribe(observer) {
+    if (!this.observers.includes(observer)) {
         this.observers.push(observer);
-    }
+    }}
+
 
     // Unsubscribe an observer
     unsubscribe(observer) {

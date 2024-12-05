@@ -5,6 +5,8 @@ import DataProxy from "../patterns/DataProxy";  // Import the DataProxy class
 import notifier from "../patterns/Notifier";  // Import the Notifier
 import Notifications from "./Notifications";  // Import the Notifications component
 import SessionManager from "../patterns/SessionManager"; // Adjust path as necessary
+import './styles.css';
+
 
 
 const Vault = () => {

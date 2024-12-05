@@ -8,6 +8,8 @@ import {
     PasswordUpdateHandler,
 } from "../patterns/CORHandler";
 import uiController from "../patterns/UIController";
+import './styles.css';
+
 
 const ForgotPassword = () => {
     const [step, setStep] = useState(1);
